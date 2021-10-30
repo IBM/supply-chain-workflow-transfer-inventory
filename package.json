@@ -1,0 +1,12 @@
+{
+  "name": "supply-chain-workflow-transfer-inventory",
+  "description": "A sample Transfer Inventory workflow for IBM Sterling Supply Chain Intelligence Suite",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "scripts": {
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
