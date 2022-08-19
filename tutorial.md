@@ -4,7 +4,7 @@ This tutorial walks you through the steps of the Transfer Inventory workflow. In
 
 ## Starting the process
 
-Start an instance of the process using the [web Inspector tool](https://www.ibm.com/docs/en/baw/20.x?topic=applications-running-debugging-processes-in-web-inspector) found in the Process Designer. Note that the **Transfer Inventory** sample requires a single `workItem` input variable to be defined when it starts. Also, `workItem` needs to be filled with [**default value**](https://www.ibm.com/docs/en/baw/20.x?topic=variables-declaring) which should be a valid workitem object. Once the process is started, you will enter into the first task of the process which is named **Create or update work item**. This task is a system task that runs immediately. It is responsible for either creating a work item definition in Sterling InfoHub system or else updating an existing work item definition with the assignment of the initiator of the process. This is a necessary step to ensure that the state and ownership of the current work item is accurately reflected. This task is implemented as a service flow which utilizes our sample toolkit to communicate with Sterling InfoHub using its work item APIs.
+Start an instance of the process using the [web Inspector tool](https://www.ibm.com/docs/en/baw/20.x?topic=applications-running-debugging-processes-in-web-inspector) found in the Process Designer. Note that the **Transfer Inventory** sample requires a single `workItem` input variable to be defined when it starts. Once the process is started, you will enter into the first task of the process which is named **Create or update work item**. This task is a system task that runs immediately. It is responsible for either creating a work item definition in Sterling InfoHub system or else updating an existing work item definition with the assignment of the initiator of the process. This is a necessary step to ensure that the state and ownership of the current work item is accurately reflected. This task is implemented as a service flow which utilizes our sample toolkit to communicate with Sterling InfoHub using its work item APIs.
 
 
 ## Requesting an inventory transfer
@@ -16,7 +16,7 @@ Once the form is submitted, the process begins to execute two tasks in parallel,
 
 ## Reviewing an inventory transfer
 
-Once the transfer request is submitted, the process navigates to the approver of the transfer request, who must approve or deny the incoming transfer request. The process enters into the user task which is called **Request review**. This task produces a form which contains the additional request in read-only format, as well as additional fields to signify whether or not the request is accepted or denied  by the approver. It is expected that the approver complete the form by selecting their decision and providing any additional comments.![review request review picture](src/images/reviewRequest.png)
+Once the transfer request is submitted, the process navigates to the approver of the transfer request, who must approve or deny the incoming transfer request. The process enters into the user task which is called **Review request**. This task produces a form which contains the additional request in read-only format, as well as additional fields to signify whether or not the request is accepted or denied  by the approver. It is expected that the approver complete the form by selecting their decision and providing any additional comments.![review request review picture](src/images/reviewRequest.png)
 
 
 ## Viewing the approval status

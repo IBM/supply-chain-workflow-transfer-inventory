@@ -1,23 +1,30 @@
-#
-#  (C) Copyright 2022 IBM Corporation.
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
+# (C) Copyright 2022 IBM Corporation.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # data mapping for service flows of transfer inventory workflow
 '"Create or update work item" service flow':
+  'Create action taken':
+    input:
+      # tenantId info as param to call sync api.
+      - infoHubTentantId: tw.local.workItem.businessObject.tenantId
+      # actionTaken object info as payload to new a workitem.
+      - workItemBody: tw.local.actionTakenBody
+    output:
+      # result after new a actionTaken
+      - createResult: tw.local.actionTakenOutput
+
   'Create work item':
-    input: 
+    input:
       # tenantId info as param to call sync api.
       - infoHubTentantId: tw.local.workItem.businessObject.tenantId
       # workitem object info as payload to new a workitem.
@@ -70,6 +77,18 @@
       - emailSubject: tw.local.emailSubject
 
 '"Update work item status" service flow':
+  'Update action taken':
+    input: 
+    # tenantId info as param to call sync api.
+    - infoHubTentantId: tw.local.workItem.businessObject.tenantId
+    # workitem id info to indicate which actionTaken should be updated.
+    - actionTakenId: tw.local.actionTakenId
+    # payload info used to update actionTaken's status.
+    - actionTakenBody: tw.local.actionTakenBody
+  output:
+    # result after update actionTaken
+    - updateResult: tw.local.actionTakenOutput
+
   'Update workitem status':
   input: 
     # tenantId info as param to call sync api.

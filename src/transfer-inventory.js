@@ -1,20 +1,23 @@
-/**
- * (C) Copyright 2022 IBM Corporation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* (C) Copyright 2022 IBM Corporation.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+  http://www.apache.org/licenses/LICENSE-2.0
 
-// GQL - query data by inventory id to get location info and product info
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+/* eslint-disable block-scoped-var, no-eq-null, no-unused-vars, no-undef, func-style, no-var */
+
+// following content with 'require' only can be added in git repo file, pls remove it on workflow js file
+const tw = require('./test/unit/mock-tw.js');
+
+// GQL - query data by inventory id to get requesting location info (transfer to site) and product info (product id / part number, product description)
 var getLocationAndPartNumberByInventoryIdGQL = '{ \
   "query": "query Inventory($tenantId: String!, $inventoryId: String!) { \
     inventory: businessObjects( \
@@ -61,7 +64,7 @@ var getLocationAndPartNumberByInventoryIdGQL = '{ \
     "variables": {} \
   }';
 
-// GQL - query inventory info by specific part number
+// GQL - query inventory info (tansfer from site, quantityAvailable) by specific part number
 var getInventoryByPartNumberGQL = '{ \
   "query":"query Inventory($tenantId: String!, $advancedFilter: BooleanExp!){ \
       inventory:businessObjects( \
@@ -132,9 +135,10 @@ function isValidJson(json) {
     return false;
   }
 }
-// initial payload for create new workitem
-function getWorkItemCreateJsonString() {
-  writeLog('operation', 'create new workitem');
+
+// initial payload for create actionTaken
+function getActionTakenCreateJsonString() {
+  writeLog('operation', 'create actionTaken');
   var body = {
     actionDefinition: {
       id: tw.local.workItem.businessObject.actionDefinition.id
@@ -142,8 +146,24 @@ function getWorkItemCreateJsonString() {
     additionalInfo: [
       {
         name: additionalInfoName,
-        value: tw.system.currentProcessInstance.id
+        value: tw.system.currentProcessInstance.id,
+        type: 'STRING'
       }
+    ],
+    status: tw.local.currentStatus,
+    tenantId: tw.local.workItem.businessObject.tenantId,
+    userAssigned: tw.local.workItem.businessObject.userAssigned
+  };
+  tw.local.actionTakenBody = JSON.stringify(body);
+  writeLog('actionTakenBody', tw.local.actionTakenBody);
+}
+
+// initial payload for create new workitem
+function getWorkItemCreateJsonString() {
+  writeLog('operation', 'create new workitem');
+  var body = {
+    actionsTaken: [
+      { id: tw.local.actionTakenId }    
     ],
     businessObject: {
       id: tw.local.workItem.businessObject.businessObject.id,
@@ -163,9 +183,50 @@ function getWorkItemCreateJsonString() {
   writeLog('workItemBody', tw.local.workItemBody);
 }
 
+// initial payload for update actionTaken
+function getActionTakenUpdateJsonString() {
+  writeLog('operation', 'update actionTaken');
+  var body = {
+    additionalInfo: [
+      {
+        name: 'WFID',
+        value: tw.system.currentProcessInstance.id,
+        type: 'STRING'
+      }
+    ],
+    status: tw.local.currentStatus,
+    tenantId: tw.local.workItem.businessObject.tenantId
+  };
+  tw.local.actionTakenBody = JSON.stringify(body);
+  writeLog('actionTaken id', tw.local.actionTakenId);
+  writeLog('actionTakenBody', tw.local.actionTakenBody);
+}
+
 // initial payload for update existing workitem
 function getWorkItemUpdateJsonString() {
   writeLog('operation', 'update existing workitem');
+  var newActionTaken = { id:tw.local.actionTakenId };
+  if(tw.local.workItem.businessObject.actionsTaken) 
+    tw.local.workItem.businessObject.actionsTaken
+      [tw.local.workItem.businessObject.actionsTaken.listLength] = newActionTaken;
+  
+  else {
+    tw.local.workItem.businessObject.actionsTaken = [];
+    tw.local.workItem.businessObject.actionsTaken[0] = newActionTaken;
+  }
+  var body = {    
+    status: tw.local.currentStatus,
+    tenantId: tw.local.workItem.businessObject.tenantId,
+    actionsTaken: tw.local.workItem.businessObject.actionsTaken
+  };
+  tw.local.workItemBody = JSON.stringify(body);
+  writeLog('existing workitem id', tw.local.workItem.businessObject.id);
+  writeLog('workItemBody', tw.local.workItemBody);
+}
+
+// initial payload for update work item status
+function getWorkItemStatusUpdateJsonString() {
+  writeLog('operation', 'update work item status');
   var body = {
     additionalInfo: [
       {
@@ -213,7 +274,19 @@ function validUpdateWorkItem() {
     writeLog('didUpdateWorkItem', tw.local.didUpdateWorkItem);
   }
   catch(e) {
-    writeError('validUpdateWorkItem');
+    writeError('validUpdateWorkItem:' + e);
+  }
+}
+
+// check whether update successfully
+function validUpdateActionTaken() {
+  writeLog('operation', 'valid update actionTaken');
+  try{
+    var result = JSON.parse(tw.local.actionTakenOutput);
+    writeLog('didUpdateActionTaken', result.id);
+  }
+  catch(e) {
+    writeError('validUpdateActionTaken:' + e);
   }
 }
 
@@ -339,14 +412,18 @@ function initializeRequestForm() {
   }
 }
 
-// following content only added in git repo file, pls remove it on workflow js file
-module.exports = {
-  initializeRequestForm,
-  writeLog,
-  getLocationAndPartNumberByInventoryId,
-  initializeQueryInventoryByPartNumberGQL,
-  getWorkItemCreateJsonString,
-  getWorkItemUpdateJsonString,
-  setUpWorkItemId,
-  validUpdateWorkItem
-};
+// // following content only added in git repo file, pls remove it on workflow js file
+// module.exports = {
+//   initializeRequestForm,
+//   writeLog,
+//   getLocationAndPartNumberByInventoryId,
+//   initializeQueryInventoryByPartNumberGQL,
+//   getWorkItemCreateJsonString,
+//   getWorkItemUpdateJsonString,
+//   setUpWorkItemId,
+//   validUpdateWorkItem,
+//   getActionTakenCreateJsonString,
+//   getActionTakenUpdateJsonString,
+//   getWorkItemStatusUpdateJsonString,
+//   validUpdateActionTaken
+// };
