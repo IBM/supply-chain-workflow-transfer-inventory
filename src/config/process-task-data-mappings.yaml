@@ -1,4 +1,4 @@
-# (C) Copyright 2022 IBM Corporation.
+# (C) Copyright 2023 IBM Corporation.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -22,12 +22,12 @@
   output:
     # store workitem info which contains workitem id for other task uses. 
     - workItem: tw.local.workItem
-    # a list to store logs info.
-    - logs: tw.local.logs
     # a flag to show whether status update success or not, when flag = true means successful.
     - didUpdateWorkItem: tw.local.didUpdateWorkItem
+    # a list to store logs info.
+    - logs: tw.local.logs
     # id of the action taken object that is created or updated
-    - workItem: tw.local.actionTakenId
+    - actionTakenId: tw.local.actionTakenId
 
 
 '"Submit request" user task':
@@ -45,7 +45,11 @@
     - requestForm: tw.local.requestForm
     # store and list logs info.
     - logs: tw.local.logs
-
+  pre-assignments:
+    # set the form updated timestamp
+    - tw.local.requestForm.updateOn: new Date()
+    # set the groupId into requestForm to be used for adding user into a specific group
+    - tw.local.requestForm.groupId: tw.local.workItem.businessObject.groupId
 
 '"View request" user task':
   input:
@@ -57,10 +61,22 @@
     - logs: tw.local.logs
 
 
+'"Add user and group" system task':
+  input:
+    # full request form info which requestor submit.
+    - requestForm: tw.local.requestForm
+  output:
+    # full request form info which requestor submit.
+    - requestForm: tw.local.requestForm
+    # a flag to indicate if the location manager exists in BAW or external user.
+    - check_if_user_exists: tw.local.check_if_user_exists
+
 '"Send request notice email" system task':
   input:
     # full request form info which requestor submit.
     - requestForm: tw.local.requestForm
+    # a flag to indicate if the location manager exists in BAW or external user.
+    - check_if_user_exists: tw.local.check_if_user_exists
   output:
     # full request form info which requestor submit.
     - requestForm: tw.local.requestForm
@@ -75,7 +91,8 @@
   output:
     # request form info after approver give their decision.
     - requestForm: tw.local.requestForm 
-
+  pre-assignments: |
+    tw.local.currentStatus = "resolutionPending";
 
 '"Update work item" system task':
   input:
@@ -86,7 +103,7 @@
     # use to mutate workitem status.
     - currentStatus: tw.local.currentStatus
     # id of the associated action taken object
-    - workItem: tw.local.actionTakenId
+    - actionTakenId: tw.local.actionTakenId
   output:
     # a list to store logs info.
     - logs: tw.local.logs

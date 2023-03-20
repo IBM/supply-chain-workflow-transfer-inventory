@@ -2,7 +2,7 @@
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
   You may obtain a copy of the License at
-  
+
   http://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software
@@ -64,7 +64,7 @@ var getLocationAndPartNumberByInventoryIdGQL = '{ \
     "variables": {} \
   }';
 
-// GQL - query inventory info (tansfer from site, quantityAvailable) by specific part number
+// GQL - query inventory info (transfer from site, quantityAvailable) by specific part number
 var getInventoryByPartNumberGQL = '{ \
   "query":"query Inventory($tenantId: String!, $advancedFilter: BooleanExp!){ \
       inventory:businessObjects( \
@@ -299,8 +299,8 @@ function getLocationAndPartNumberByInventoryId() {
     tenantId: tw.local.tenantId,
     inventoryId: tw.local.inventoryId
   };
-  tw.local.queryLocationAndPartNumberGQL = JSON.stringify(queryObj);
-  writeLog('queryLocationAndPartNumberGQL', tw.local.queryLocationAndPartNumberGQL);
+  tw.local.queryInventoryGQL = JSON.stringify(queryObj);
+  writeLog('queryInventoryGQL', tw.local.queryInventoryGQL);
 }
 
 // get location and product result and set them to requestForm
@@ -308,10 +308,10 @@ function getLocationAndPartNumberByInventoryId() {
 function initializeQueryInventoryByPartNumberGQL() {
   writeLog('operation', 'get inventory info by part number');
   try{
-    if (tw.local.queryLocationAndPartNumberGQLOutput) {
-      writeLog('queryLocationAndPartNumberGQLOutput', tw.local.queryLocationAndPartNumberGQLOutput);
-      if (isValidJson(tw.local.queryLocationAndPartNumberGQLOutput)) {
-        var results = JSON.parse(tw.local.queryLocationAndPartNumberGQLOutput);
+    if (tw.local.queryInventoryGQLOutput) {
+      writeLog('queryInventoryGQLOutput', tw.local.queryInventoryGQLOutput);
+      if (isValidJson(tw.local.queryInventoryGQLOutput)) {
+        var results = JSON.parse(tw.local.queryInventoryGQLOutput);
         var list = results.data.inventory.edges;
         var locationName = list[0].object.location.locationName;
         var partNumber = list[0].object.product.partNumber;
@@ -365,8 +365,8 @@ function initializeQueryInventoryByPartNumberGQL() {
           }
         };
 
-        tw.local.queryInventoryGQL = JSON.stringify(queryObj);
-        writeLog('queryInventoryGQL', tw.local.queryInventoryGQL);
+        tw.local.queryLocationAndPartNumberGQL = JSON.stringify(queryObj);
+        writeLog('queryLocationAndPartNumberGQL', tw.local.queryLocationAndPartNumberGQL);
       }
       else 
         writeError('query location and part number result is not a valid json');
@@ -375,8 +375,7 @@ function initializeQueryInventoryByPartNumberGQL() {
       writeError('There is no inventory info matched with your part number.');
   }
   catch (e) {
-    writeError(tw.local.queryLocationAndPartNumberGQLOutput);
-    writeError(tw.local.queryInventoryGQL);
+    writeError(e);
   }
 }
 
@@ -385,13 +384,13 @@ function initializeQueryInventoryByPartNumberGQL() {
 function initializeRequestForm() {
   try{
     writeLog('operation', 'initial request form');
-    if (tw.local.queryInventoryGQLOutput) {
-      writeLog('queryInventoryGQLOutput', tw.local.queryInventoryGQLOutput);
-      if (isValidJson(tw.local.queryInventoryGQLOutput)) {
+    if (tw.local.queryLocationAndPartNumberGQLOutput) {
+      writeLog('queryLocationAndPartNumberGQLOutput', tw.local.queryLocationAndPartNumberGQLOutput);
+      if (isValidJson(tw.local.queryLocationAndPartNumberGQLOutput)) {
         tw.local.requestForm.requestorInfo = {};
         tw.local.requestForm.requestorInfo.name = tw.system.user.name;
         tw.local.requestForm.dateOfRequest = new Date(new Date().getTime());
-        var results = JSON.parse(tw.local.queryInventoryGQLOutput);
+        var results = JSON.parse(tw.local.queryLocationAndPartNumberGQLOutput);
         var list = results.data.inventory.edges; // inventory list
         // the transfer location should be a list
         var locationName = list[0].object.location.locationName;
@@ -407,23 +406,22 @@ function initializeRequestForm() {
       writeError('inventory result is null');
   }
   catch (e) {
-    writeError(tw.local.queryInventoryGQLOutput);
-    writeError(JSON.stringify(tw.local.requestForm));
+    writeError(e);
   }
 }
 
-// // following content only added in git repo file, pls remove it on workflow js file
-// module.exports = {
-//   initializeRequestForm,
-//   writeLog,
-//   getLocationAndPartNumberByInventoryId,
-//   initializeQueryInventoryByPartNumberGQL,
-//   getWorkItemCreateJsonString,
-//   getWorkItemUpdateJsonString,
-//   setUpWorkItemId,
-//   validUpdateWorkItem,
-//   getActionTakenCreateJsonString,
-//   getActionTakenUpdateJsonString,
-//   getWorkItemStatusUpdateJsonString,
-//   validUpdateActionTaken
-// };
+// following content only added in git repo file, pls remove it on workflow js file
+module.exports = {
+  initializeRequestForm,
+  writeLog,
+  getLocationAndPartNumberByInventoryId,
+  initializeQueryInventoryByPartNumberGQL,
+  getWorkItemCreateJsonString,
+  getWorkItemUpdateJsonString,
+  setUpWorkItemId,
+  validUpdateWorkItem,
+  getActionTakenCreateJsonString,
+  getActionTakenUpdateJsonString,
+  getWorkItemStatusUpdateJsonString,
+  validUpdateActionTaken
+};
